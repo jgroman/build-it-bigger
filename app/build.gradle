@@ -47,6 +47,9 @@ dependencies {
     // JokeProvider Java project
     implementation project(':jokeproviderlib')
 
+    // Joke display activity project
+    implementation project(':jokeactivitylib')
+
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
