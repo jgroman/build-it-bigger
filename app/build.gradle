@@ -30,6 +30,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    testOptions {
+        // Required for JokeFetchTest
+        unitTests.returnDefaultValues = true
+    }
 }
 
 dependencies {
