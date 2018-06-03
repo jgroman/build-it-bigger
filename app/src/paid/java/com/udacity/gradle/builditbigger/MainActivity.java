@@ -5,18 +5,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    private View mRootView;
+    private ProgressBar mProgressBar;
+    private Button mButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mRootView = findViewById(android.R.id.content);
+        mProgressBar = findViewById(R.id.pb_loading);
+        mButton = findViewById(R.id.btn_tell_joke);
     }
 
     @Override
@@ -41,13 +45,41 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Hide loading indicator
+        if (mProgressBar != null) {
+            mProgressBar.setVisibility(View.GONE);
+        }
+
+        // Show button
+        if (mButton != null) {
+            mButton.setVisibility(View.VISIBLE);
+        }
+
+    }
+
     /**
      * "Tell joke" button click handler
      *
      * @param view
      */
     public void tellJoke(View view) {
-        new EndpointsAsyncTask(this, mRootView).execute(this);
+
+        // Show loading indicator
+        if (mProgressBar != null) {
+            mProgressBar.setVisibility(View.VISIBLE);
+        }
+
+        // Hide button
+        if (mButton != null) {
+            mButton.setVisibility(View.INVISIBLE);
+        }
+
+        // Start joke fetching
+        new EndpointsAsyncTask().execute(this);
     }
 
 }

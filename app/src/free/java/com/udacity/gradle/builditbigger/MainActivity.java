@@ -6,6 +6,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -17,14 +19,16 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG =  MainActivity.class.getSimpleName();
 
     private InterstitialAd mInterstitialAd;
-    private View mRootView;
+    private ProgressBar mProgressBar;
+    private Button mButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mRootView = findViewById(android.R.id.content);
+        mProgressBar = findViewById(R.id.pb_loading);
+        mButton = findViewById(R.id.btn_tell_joke);
 
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
@@ -59,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
                 mInterstitialAd.loadAd(new AdRequest.Builder().build());
 
                 // Running Endpoints task to fetch joke
-                runEndpointsAsyncTask(mRootView);
+                runEndpointsAsyncTask();
             }
         });
     }
@@ -87,6 +91,22 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Hide loading indicator
+        if (mProgressBar != null) {
+            mProgressBar.setVisibility(View.GONE);
+        }
+
+        // Show button
+        if (mButton != null) {
+            mButton.setVisibility(View.VISIBLE);
+        }
+
+    }
+
     /**
      * "Tell joke" button click handler
      *
@@ -103,8 +123,20 @@ public class MainActivity extends AppCompatActivity {
         // Joke is fetched after ad is closed
     }
 
-    private void runEndpointsAsyncTask(View view) {
-        new EndpointsAsyncTask(this, view).execute(this);
+    private void runEndpointsAsyncTask() {
+
+        // Show loading indicator
+        if (mProgressBar != null) {
+            mProgressBar.setVisibility(View.VISIBLE);
+        }
+
+        // Hide button
+        if (mButton != null) {
+            mButton.setVisibility(View.INVISIBLE);
+        }
+
+        // Start joke fetching
+        new EndpointsAsyncTask().execute(this);
     }
 
 }

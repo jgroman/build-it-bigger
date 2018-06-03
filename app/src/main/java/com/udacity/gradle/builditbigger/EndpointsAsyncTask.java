@@ -20,22 +20,6 @@ public class EndpointsAsyncTask extends AsyncTask<Context, Void, String> {
 
     private static MyApi myApiService = null;
     private Context mContext;
-    private View mView;
-
-    private ProgressBar spinner;
-
-    public EndpointsAsyncTask(Context context, View view) {
-        mContext = context;
-        mView = view;
-    }
-
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-
-        spinner = mView.findViewById(R.id.pb_loading);
-        spinner.setVisibility(View.VISIBLE);
-    }
 
     @Override
     protected String doInBackground(Context... params) {
@@ -68,8 +52,6 @@ public class EndpointsAsyncTask extends AsyncTask<Context, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
-        spinner.setVisibility(View.GONE);
-
         if (mContext != null) {
             Intent displayIntent = new Intent(mContext, JokeDisplayActivity.class);
             displayIntent.putExtra(JokeDisplayActivity.KEY_JOKE, result);
