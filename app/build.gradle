@@ -58,7 +58,7 @@ dependencies {
     implementation 'com.google.http-client:google-http-client-android:1.23.0'
     implementation 'com.google.code.findbugs:jsr305:3.0.1'
 
-    // Ads only in free product flavor
+    // Ads lib only in free product flavor
     freeImplementation 'com.google.android.gms:play-services-ads:15.0.1'
 
     // JokeProvider Java project
@@ -72,4 +72,26 @@ dependencies {
     })
 
     testImplementation 'junit:junit:4.12'
+}
+
+task runAppengine(dependsOn: [":backend:appengineStart"]) {
+    finalizedBy "runAllTests"
+    doLast {
+        println "Run Appengine"
+    }
+}
+
+task runAllTests(dependsOn: [":app:connectedAndroidTest"]) {
+    dependsOn "runAppengine"
+    finalizedBy "stopAppengine"
+    doLast {
+        println "Run tests"
+    }
+}
+
+task stopAppengine(dependsOn: [":backend:appengineStop"]) {
+    dependsOn "runAllTests"
+    doLast {
+        println "Stop Appengine"
+    }
 }
