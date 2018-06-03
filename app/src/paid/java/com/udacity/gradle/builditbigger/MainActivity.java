@@ -13,8 +13,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-    }
 
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -38,9 +38,17 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * "Tell joke" button click handler
+     *
+     * @param view
+     */
     public void tellJoke(View view) {
-        new EndpointsAsyncTask().execute(this);
-        }
+        runEndpointsAsyncTask();
+    }
 
+    private void runEndpointsAsyncTask() {
+        new EndpointsAsyncTask().execute(this);
+    }
 
 }
