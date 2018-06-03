@@ -9,11 +9,14 @@ import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
 
+    private View mRootView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mRootView = findViewById(android.R.id.content);
     }
 
     @Override
@@ -44,11 +47,7 @@ public class MainActivity extends AppCompatActivity {
      * @param view
      */
     public void tellJoke(View view) {
-        runEndpointsAsyncTask();
-    }
-
-    private void runEndpointsAsyncTask() {
-        new EndpointsAsyncTask().execute(this);
+        new EndpointsAsyncTask(this, mRootView).execute(this);
     }
 
 }

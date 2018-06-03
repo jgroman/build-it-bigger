@@ -17,11 +17,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG =  MainActivity.class.getSimpleName();
 
     private InterstitialAd mInterstitialAd;
+    private View mRootView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mRootView = findViewById(android.R.id.content);
 
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
@@ -52,8 +55,11 @@ public class MainActivity extends AppCompatActivity {
             public void onAdClosed() {
                 // Code to be executed when when the interstitial ad is closed.
 
+                // Load the next interstitial.
+                mInterstitialAd.loadAd(new AdRequest.Builder().build());
+
                 // Running Endpoints task to fetch joke
-                runEndpointsAsyncTask();
+                runEndpointsAsyncTask(mRootView);
             }
         });
     }
@@ -97,8 +103,8 @@ public class MainActivity extends AppCompatActivity {
         // Joke is fetched after ad is closed
     }
 
-    private void runEndpointsAsyncTask() {
-        new EndpointsAsyncTask().execute(this);
+    private void runEndpointsAsyncTask(View view) {
+        new EndpointsAsyncTask(this, view).execute(this);
     }
 
 }
