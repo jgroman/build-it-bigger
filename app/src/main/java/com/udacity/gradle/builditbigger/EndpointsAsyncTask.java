@@ -1,10 +1,6 @@
 package com.udacity.gradle.builditbigger;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
-import android.view.View;
-import android.widget.ProgressBar;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
@@ -14,15 +10,24 @@ import com.udacity.gradle.builditbigger.backend.myApi.MyApi;
 
 import java.io.IOException;
 
-import cz.jtek.jokeactivitylib.JokeDisplayActivity;
+public class EndpointsAsyncTask extends AsyncTask<Void, Void, String> {
 
-public class EndpointsAsyncTask extends AsyncTask<Context, Void, String> {
+    public interface EndpointsAsyncTaskListener<T> {
+        void onSuccess(T object);
+        void onFailure(Exception e);
+    }
+
+    private EndpointsAsyncTaskListener<String> mCallback;
+    private Exception mException;
 
     private static MyApi myApiService = null;
-    private Context mContext;
+
+    public EndpointsAsyncTask(EndpointsAsyncTaskListener<String> listener) {
+        mCallback = listener;
+    }
 
     @Override
-    protected String doInBackground(Context... params) {
+    protected String doInBackground(Void... voids) {
         if (myApiService == null) {  // Only do this once
             MyApi.Builder builder = new MyApi.Builder(AndroidHttp.newCompatibleTransport(),
                     new AndroidJsonFactory(), null)
@@ -32,7 +37,7 @@ public class EndpointsAsyncTask extends AsyncTask<Context, Void, String> {
                     .setRootUrl("http://10.0.2.2:8080/_ah/api/")
                     .setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
                         @Override
-                        public void initialize(AbstractGoogleClientRequest<?> abstractGoogleClientRequest) throws IOException {
+                        public void initialize(AbstractGoogleClientRequest<?> abstractGoogleClientRequest)  {
                             abstractGoogleClientRequest.setDisableGZipContent(true);
                         }
                     });
@@ -41,21 +46,23 @@ public class EndpointsAsyncTask extends AsyncTask<Context, Void, String> {
             myApiService = builder.build();
         }
 
-        mContext = params[0];
-
         try {
             return myApiService.fetchJoke().execute().getData();
         } catch (IOException e) {
+            mException = e;
             return e.getMessage();
         }
     }
 
     @Override
     protected void onPostExecute(String result) {
-        if (mContext != null) {
-            Intent displayIntent = new Intent(mContext, JokeDisplayActivity.class);
-            displayIntent.putExtra(JokeDisplayActivity.KEY_JOKE, result);
-            mContext.startActivity(displayIntent);
+        if (mCallback != null) {
+            if (mException == null) {
+                mCallback.onSuccess(result);
+            }
+            else {
+                mCallback.onFailure(mException);
+            }
         }
     }
 }

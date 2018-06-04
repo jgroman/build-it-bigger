@@ -1,5 +1,6 @@
 package com.udacity.gradle.builditbigger;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -13,14 +14,20 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
 
+import cz.jtek.jokeactivitylib.JokeDisplayActivity;
+
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG =  MainActivity.class.getSimpleName();
 
-    private InterstitialAd mInterstitialAd;
     private ProgressBar mProgressBar;
     private Button mButton;
+
+    private InterstitialAd mInterstitialAd;
+    private int mCounterAdLoadRetries;
+
+    private static final int MAX_AD_LOAD_RETRIES = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
 
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
-        mInterstitialAd.loadAd(new AdRequest.Builder().build());
 
         mInterstitialAd.setAdListener(new AdListener() {
             @Override
@@ -43,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAdFailedToLoad(int errorCode) {
                 // Code to be executed when an ad request fails.
+
+                // Retry ad loading
+                if (mCounterAdLoadRetries < MAX_AD_LOAD_RETRIES) {
+                    mCounterAdLoadRetries++;
+                    mInterstitialAd.loadAd(new AdRequest.Builder().build());
+                }
             }
 
             @Override
@@ -58,9 +70,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAdClosed() {
                 // Code to be executed when when the interstitial ad is closed.
-
-                // Load the next interstitial.
-                mInterstitialAd.loadAd(new AdRequest.Builder().build());
 
                 // Running Endpoints task to fetch joke
                 runEndpointsAsyncTask();
@@ -92,6 +101,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Load the next interstitial.
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+
+        // Reset ad load counter
+        mCounterAdLoadRetries = 1;
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
 
@@ -110,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * "Tell joke" button click handler
      *
-     * @param view
+     * @param view View
      */
     public void tellJoke(View view) {
 
@@ -118,6 +138,9 @@ public class MainActivity extends AppCompatActivity {
             mInterstitialAd.show();
         } else {
             Log.d(TAG, "The interstitial wasn't loaded yet.");
+
+            // Run Endpoints AsyncTask anyway
+            runEndpointsAsyncTask();
         }
 
         // Joke is fetched after ad is closed
@@ -136,7 +159,25 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Start joke fetching
-        new EndpointsAsyncTask().execute(this);
+        EndpointsAsyncTask eat = new EndpointsAsyncTask(new EndpointsAsyncTask.EndpointsAsyncTaskListener<String>() {
+            @Override
+            public void onSuccess(String result) {
+                startJokeDisplayActivity(result);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                startJokeDisplayActivity(e.getMessage());
+            }
+        });
+
+        eat.execute();
+    }
+
+    public void startJokeDisplayActivity(String jokeText) {
+        Intent displayIntent = new Intent(this, JokeDisplayActivity.class);
+        displayIntent.putExtra(JokeDisplayActivity.KEY_JOKE, jokeText);
+        startActivity(displayIntent);
     }
 
 }

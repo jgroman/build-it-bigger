@@ -1,47 +1,56 @@
 package com.udacity.gradle.builditbigger.testing;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.udacity.gradle.builditbigger.EndpointsAsyncTask;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
 
 @RunWith(AndroidJUnit4.class)
 public class FetchAndroidTest {
 
-    private static final String TAG = "FetchAndroidTest";
+    private static final String TAG = FetchAndroidTest.class.getSimpleName();
 
-    private Context targetContext;
-
-    @Before
-    public void setup() {
-        targetContext = InstrumentationRegistry.getTargetContext();
-    }
+    private String mResult;
 
     /**
      * Verify that EndpointsAsyncTask fetches non-null string from API.
      */
     @Test
     public void testJokeFetching() {
-        String fetchResult = null;
 
-        EndpointsAsyncTask endpointsAsyncTask = new EndpointsAsyncTask();
-        endpointsAsyncTask.execute(targetContext);
+        final EndpointsAsyncTask.EndpointsAsyncTaskListener<String> listener = new EndpointsAsyncTask.EndpointsAsyncTaskListener<String>() {
+            @Override
+            public void onSuccess(String result) {
+                Log.d(TAG, "onSuccess: " + result);
+                mResult = result;
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.d(TAG, "onFailure: " + e.getMessage());
+                mResult = e.getMessage();
+            }
+        };
+
+        EndpointsAsyncTask endpointsAsyncTask = new EndpointsAsyncTask(listener);
+        endpointsAsyncTask.execute();
 
         try {
-            fetchResult = endpointsAsyncTask.get();
-            Log.d(TAG, "testJokeFetching: fetched: " + fetchResult);
-        } catch (Exception e) {
+            // Espresso waits until AsyncTask is done
+            mResult = endpointsAsyncTask.get();
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
-        assertNotNull(fetchResult);
+
+        // Assert that result is not empty
+        assertFalse(TextUtils.isEmpty(mResult));
     }
 
 }

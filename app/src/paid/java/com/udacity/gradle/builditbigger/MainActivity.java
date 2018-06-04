@@ -1,5 +1,6 @@
 package com.udacity.gradle.builditbigger;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -7,6 +8,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
+
+import cz.jtek.jokeactivitylib.JokeDisplayActivity;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -64,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * "Tell joke" button click handler
      *
-     * @param view
+     * @param view View
      */
     public void tellJoke(View view) {
 
@@ -79,7 +82,41 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Start joke fetching
-        new EndpointsAsyncTask().execute(this);
+        runEndpointsAsyncTask();
+    }
+
+    private void runEndpointsAsyncTask() {
+
+        // Show loading indicator
+        if (mProgressBar != null) {
+            mProgressBar.setVisibility(View.VISIBLE);
+        }
+
+        // Hide button
+        if (mButton != null) {
+            mButton.setVisibility(View.INVISIBLE);
+        }
+
+        // Start joke fetching
+        EndpointsAsyncTask eat = new EndpointsAsyncTask(new EndpointsAsyncTask.EndpointsAsyncTaskListener<String>() {
+            @Override
+            public void onSuccess(String result) {
+                startJokeDisplayActivity(result);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                startJokeDisplayActivity(e.getMessage());
+            }
+        });
+
+        eat.execute();
+    }
+
+    public void startJokeDisplayActivity(String jokeText) {
+        Intent displayIntent = new Intent(this, JokeDisplayActivity.class);
+        displayIntent.putExtra(JokeDisplayActivity.KEY_JOKE, jokeText);
+        startActivity(displayIntent);
     }
 
 }
