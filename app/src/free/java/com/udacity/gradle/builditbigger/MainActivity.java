@@ -1,5 +1,6 @@
 package com.udacity.gradle.builditbigger;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG =  MainActivity.class.getSimpleName();
 
+    private Context mContext;
+
     private ProgressBar mProgressBar;
     private Button mButton;
 
@@ -33,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mContext = this;
 
         mProgressBar = findViewById(R.id.pb_loading);
         mButton = findViewById(R.id.btn_tell_joke);
@@ -104,17 +109,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        // Load the next interstitial.
-        mInterstitialAd.loadAd(new AdRequest.Builder().build());
-
-        // Reset ad load counter
-        mCounterAdLoadRetries = 1;
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
         // Hide loading indicator
         if (mProgressBar != null) {
             mProgressBar.setVisibility(View.GONE);
@@ -125,6 +119,11 @@ public class MainActivity extends AppCompatActivity {
             mButton.setVisibility(View.VISIBLE);
         }
 
+        // Load the next interstitial.
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+
+        // Reset ad load counter
+        mCounterAdLoadRetries = 1;
     }
 
     /**
@@ -133,20 +132,6 @@ public class MainActivity extends AppCompatActivity {
      * @param view View
      */
     public void tellJoke(View view) {
-
-        if (mInterstitialAd.isLoaded()) {
-            mInterstitialAd.show();
-        } else {
-            Log.d(TAG, "The interstitial wasn't loaded yet.");
-
-            // Run Endpoints AsyncTask anyway
-            runEndpointsAsyncTask();
-        }
-
-        // Joke is fetched after ad is closed
-    }
-
-    private void runEndpointsAsyncTask() {
 
         // Show loading indicator
         if (mProgressBar != null) {
@@ -158,26 +143,32 @@ public class MainActivity extends AppCompatActivity {
             mButton.setVisibility(View.INVISIBLE);
         }
 
+        if (mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+            // Joke is fetched by onAdClosed() method after the ad is closed
+        }
+        else {
+            // Interstitial ad is not loaded yet or loading failed
+            Log.d(TAG, "The interstitial wasn't loaded yet.");
+
+            // Run Endpoints AsyncTask anyway
+            runEndpointsAsyncTask();
+        }
+    }
+
+    private void runEndpointsAsyncTask() {
+
         // Start joke fetching
         EndpointsAsyncTask eat = new EndpointsAsyncTask(new EndpointsAsyncTask.EndpointsAsyncTaskListener<String>() {
             @Override
             public void onSuccess(String result) {
-                startJokeDisplayActivity(result);
+                startActivity(JokeDisplayActivity.newIntent(mContext, result));
             }
 
             @Override
             public void onFailure(Exception e) {
-                startJokeDisplayActivity(e.getMessage());
-            }
+                startActivity(JokeDisplayActivity.newIntent(mContext, e.getMessage()));            }
         });
-
         eat.execute();
     }
-
-    public void startJokeDisplayActivity(String jokeText) {
-        Intent displayIntent = new Intent(this, JokeDisplayActivity.class);
-        displayIntent.putExtra(JokeDisplayActivity.KEY_JOKE, jokeText);
-        startActivity(displayIntent);
-    }
-
 }

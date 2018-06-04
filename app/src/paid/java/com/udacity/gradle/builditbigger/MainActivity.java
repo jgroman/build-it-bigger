@@ -1,5 +1,6 @@
 package com.udacity.gradle.builditbigger;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,8 @@ import cz.jtek.jokeactivitylib.JokeDisplayActivity;
 
 public class MainActivity extends AppCompatActivity {
 
+    private Context mContext;
+
     private ProgressBar mProgressBar;
     private Button mButton;
 
@@ -21,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mContext = this;
 
         mProgressBar = findViewById(R.id.pb_loading);
         mButton = findViewById(R.id.btn_tell_joke);
@@ -49,8 +54,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStart() {
+        super.onStart();
 
         // Hide loading indicator
         if (mProgressBar != null) {
@@ -61,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
         if (mButton != null) {
             mButton.setVisibility(View.VISIBLE);
         }
-
     }
 
     /**
@@ -82,41 +86,19 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Start joke fetching
-        runEndpointsAsyncTask();
-    }
-
-    private void runEndpointsAsyncTask() {
-
-        // Show loading indicator
-        if (mProgressBar != null) {
-            mProgressBar.setVisibility(View.VISIBLE);
-        }
-
-        // Hide button
-        if (mButton != null) {
-            mButton.setVisibility(View.INVISIBLE);
-        }
-
-        // Start joke fetching
         EndpointsAsyncTask eat = new EndpointsAsyncTask(new EndpointsAsyncTask.EndpointsAsyncTaskListener<String>() {
             @Override
             public void onSuccess(String result) {
-                startJokeDisplayActivity(result);
+                startActivity(JokeDisplayActivity.newIntent(mContext, result));
             }
 
             @Override
             public void onFailure(Exception e) {
-                startJokeDisplayActivity(e.getMessage());
+                startActivity(JokeDisplayActivity.newIntent(mContext, e.getMessage()));
             }
         });
 
         eat.execute();
-    }
-
-    public void startJokeDisplayActivity(String jokeText) {
-        Intent displayIntent = new Intent(this, JokeDisplayActivity.class);
-        displayIntent.putExtra(JokeDisplayActivity.KEY_JOKE, jokeText);
-        startActivity(displayIntent);
     }
 
 }

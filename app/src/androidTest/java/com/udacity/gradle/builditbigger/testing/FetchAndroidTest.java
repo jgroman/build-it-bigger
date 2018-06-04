@@ -24,25 +24,23 @@ public class FetchAndroidTest {
     @Test
     public void testJokeFetching() {
 
-        final EndpointsAsyncTask.EndpointsAsyncTaskListener<String> listener = new EndpointsAsyncTask.EndpointsAsyncTaskListener<String>() {
-            @Override
-            public void onSuccess(String result) {
-                Log.d(TAG, "onSuccess: " + result);
-                mResult = result;
-            }
+        final EndpointsAsyncTask.EndpointsAsyncTaskListener<String> listener =
+                new EndpointsAsyncTask.EndpointsAsyncTaskListener<String>() {
+                    @Override
+                    public void onSuccess(String result) {
+                        Log.d(TAG, "onSuccess: " + result);
+                    }
 
-            @Override
-            public void onFailure(Exception e) {
-                Log.d(TAG, "onFailure: " + e.getMessage());
-                mResult = e.getMessage();
-            }
-        };
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.d(TAG, "onFailure: " + e.getMessage());
+                    }
+                };
 
         EndpointsAsyncTask endpointsAsyncTask = new EndpointsAsyncTask(listener);
         endpointsAsyncTask.execute();
 
         try {
-            // Espresso waits until AsyncTask is done
             mResult = endpointsAsyncTask.get();
         }
         catch (Exception e) {
