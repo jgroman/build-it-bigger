@@ -10,8 +10,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class FetchAndroidTest {
@@ -24,6 +26,9 @@ public class FetchAndroidTest {
     @Test
     public void testJokeFetching() {
 
+        final int TEST_TIMEOUT_SECONDS = 30;
+
+        // Synchronized asynchronous task test helper
         final CountDownLatch latch = new CountDownLatch(1);
 
         final EndpointsAsyncTask.EndpointsAsyncTaskListener<String> listener =
@@ -53,8 +58,14 @@ public class FetchAndroidTest {
         endpointsAsyncTask.execute();
 
         try {
-            // Wait for synchronized latch to count down to zero
-            latch.await();
+            // Wait for synchronized latch to count down to zero or timeout
+            Boolean latchCountedDown = latch.await(TEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            if (!latchCountedDown) {
+                // Timeout has occurred before task result was received
+                Log.d(TAG, "testJokeFetching: Test timed out.");
+                fail();
+            }
         }
         catch (InterruptedException iex) {
             Log.d(TAG, "testJokeFetching: Test interrupted.");
